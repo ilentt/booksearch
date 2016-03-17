@@ -1,13 +1,14 @@
 package com.codepath.android.booksearch.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.codepath.android.booksearch.R;
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 import cz.msebera.android.httpclient.Header;
 
 
-public class BookListActivity extends AppCompatActivity implements Parcelable {
+public class BookListActivity extends AppCompatActivity {
     private ListView lvBooks;
     private BookAdapter bookAdapter;
     private BookClient client;
@@ -43,6 +44,17 @@ public class BookListActivity extends AppCompatActivity implements Parcelable {
         lvBooks.setAdapter(bookAdapter);
         // Fetch the data remotely
         fetchBooks("Oscar Wilde");
+
+        lvBooks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //Toast.makeText(BookListActivity.this, "Click", Toast.LENGTH_SHORT).show();
+                Book book = bookAdapter.getItem(position);
+                Intent i = new Intent(BookListActivity.this, BookDetailActivity.class);
+                i.putExtra("book", book);
+                startActivity(i);
+            }
+        });
     }
 
     // Executes an API call to the OpenLibrary search endpoint, parses the results
@@ -54,7 +66,7 @@ public class BookListActivity extends AppCompatActivity implements Parcelable {
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
                     JSONArray docs;
-                    if(response != null) {
+                    if (response != null) {
                         // Get the docs json array
                         docs = response.getJSONArray("docs");
                         // Parse json array into array of model objects
@@ -125,40 +137,4 @@ public class BookListActivity extends AppCompatActivity implements Parcelable {
         return super.onOptionsItemSelected(item);
 
     }
-
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(this.lvBooks, flags);
-        dest.writeParcelable(this.bookAdapter, flags);
-        dest.writeParcelable(this.client, flags);
-        dest.writeParcelable(this.mSearchView, flags);
-    }
-
-    public BookListActivity() {
-    }
-
-    protected BookListActivity(Parcel in) {
-        this.lvBooks = in.readParcelable(ListView.class.getClassLoader());
-        this.bookAdapter = in.readParcelable(BookAdapter.class.getClassLoader());
-        this.client = in.readParcelable(BookClient.class.getClassLoader());
-        this.mSearchView = in.readParcelable(SearchView.class.getClassLoader());
-    }
-
-    public static final Parcelable.Creator<BookListActivity> CREATOR = new Parcelable.Creator<BookListActivity>() {
-        @Override
-        public BookListActivity createFromParcel(Parcel source) {
-            return new BookListActivity(source);
-        }
-
-        @Override
-        public BookListActivity[] newArray(int size) {
-            return new BookListActivity[size];
-        }
-    };
 }
